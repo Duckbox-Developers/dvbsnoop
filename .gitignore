@@ -1,3 +1,9 @@
+*.o
+*.a
+*.so
+.deps
+build
+dvbsnoop
 Makefile
 aclocal.m4
 autom4te.cache
