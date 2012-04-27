@@ -2,9 +2,11 @@
 *.a
 *.so
 .deps
+.*.sw*
+config.*
+Makefile
 build
 dvbsnoop
-Makefile
 aclocal.m4
 autom4te.cache
 config.h
