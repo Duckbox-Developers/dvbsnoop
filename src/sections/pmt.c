@@ -20,6 +20,7 @@ $Id: pmt.c,v 1.14 2009/11/22 15:36:27 rhabarber1848 Exp $
 #include "strings/dvb_str.h"
 #include "misc/output.h"
 #include "misc/pid_mem.h"
+#include "misc/program_mem.h"
 
 void section_PMT (u_char *b, int len)
 {
@@ -65,6 +66,7 @@ void section_PMT (u_char *b, int len)
  PMT        p;
  PMT_LIST2  p2;
  int        len1,len2;
+ TS_PROGRAM* program;
 
 
  
@@ -132,6 +134,8 @@ void section_PMT (u_char *b, int len)
  indent (-1);
  out_NL (3);
 
+ // $$$ TODO reset program with real PID instead of 0
+ program = reset_ProgramMem(0, p.program_number);
 
  out_nl (3,"Stream_type loop: ");
  indent (+1);
@@ -142,6 +146,9 @@ void section_PMT (u_char *b, int len)
    p2.elementary_PID		 = getBits (b, 0, 11, 13);
    p2.reserved_2		 = getBits (b, 0, 24,  4);
    p2.ES_info_length		 = getBits (b, 0, 28, 12);
+
+   // store stream type here for proper PES analyzer
+   store_StreamToMem(program, p2.elementary_PID, p2.stream_type);
 
    if (*dvbstrStream_TYPE_SHORT (p2.stream_type) == 'S') {	// SECTION?
    	store_PidToMem (p2.elementary_PID);			// $$$ TODO maybe PES-Spider too?
