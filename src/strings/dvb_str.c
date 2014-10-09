@@ -3438,6 +3438,23 @@ char *dvbstrTS_MIP_ChannelBandwidth (u_int i)
 }
 
 
+/*
+ -- MIP, TPS Bandwidth
+ -- TS 101 191
+*/
+char *dvbstrTS_MIP_Bandwidth_SCHEME (u_int i)
+
+{
+  STR_TABLE  Table[] = {
+     {  0x00, 0x00,  "7 MHz" },
+     {  0x01, 0x01,  "8 MHz" },
+     {  0x02, 0x02,  "6 MHz" },
+     {  0x03, 0x03,  "reserved" },
+     {  0,0, NULL }
+  };
+
+  return findTableID (Table, i);
+}
 
 
 

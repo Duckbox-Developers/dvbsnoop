@@ -183,6 +183,7 @@ char *dvbstrMPEG_Original_Or_Copy (u_int i);
 char *dvbstrTS_MIP_Syncronization (u_int i);
 char *dvbstrTS_MIP_FunctionTag (u_int i);
 char *dvbstrTS_MIP_ChannelBandwidth (u_int i);
+char *dvbstrTS_MIP_Bandwidth_SCHEME (u_int i);
 
 
 
