@@ -81,7 +81,6 @@ int  descriptorMHP_AIT (u_char *b)
      case 0x10:  descriptorMHP_AIT_application_storage (b); break;
      case 0x11:  descriptorMHP_AIT_ip_signalling (b); break;
      case 0x15:  descriptorMHP_AIT_application_location (b); break;
-
      case 0x5F:  descriptorDVB_PrivateDataSpecifier (b); break;
 
      default: 
@@ -725,13 +724,9 @@ void descriptorMHP_AIT_application_location( u_char* b )
   int len;
   // descriptor_tag	= b[0];
   len = b[1];
-  
+
   b +=2;
 
   print_text_UTF8 (4, "location: ", b, len);
 
 }
-
-
-
-
