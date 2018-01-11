@@ -1,7 +1,7 @@
 
 bin_PROGRAMS = dvbsnoop
 
-INCLUDES = \
+AM_CPPFLAGS = \
 	-I$(top_srcdir)
 
 EXTRA_DIST = \
