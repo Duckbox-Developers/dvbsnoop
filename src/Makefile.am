@@ -46,6 +46,7 @@ dvbsnoop_LDADD = \
 	$(top_builddir)/src/private/eicta.org/libprivateEictaORG.a \
 	$(top_builddir)/src/private/nordig.org/libprivateNordigORG.a \
 	$(top_builddir)/src/private/premiere.de/libprivatePremiereDE.a \
+	$(top_builddir)/src/private/bskyb.uk/libprivateBskybUK.a \
 	$(top_builddir)/src/ebu/libebu.a \
 	$(top_builddir)/src/net_ip/libnetip.a \
 	$(top_builddir)/src/strings/libstrings.a \
