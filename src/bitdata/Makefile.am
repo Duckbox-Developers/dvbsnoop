@@ -11,4 +11,3 @@ noinst_HEADERS = \
 libbitdata_a_SOURCES = \
 	bitdata.c
 
-libbitdata_LDADD = -lm
