@@ -1,3 +1,15 @@
+   release 1.4.53
+ - New: Private provider bskyb.uk, Thanks to https://github.com/LraiZer and https://github.com/AbuBaniaz
+
+   release 1.4.52
+ - Fix: Build issue with old DVB API, Thanks to https://github.com/Taapat and https://github.com/atvcaptain
+
+   release 1.4.51
+ - Patch: setvbuf / setlinebuf on Linux by https://sourceforge.net/u/userid-672436/profile/
+ - Patch: fix crc32 (-softcrc) under 64-bit linux by https://sourceforge.net/u/mkuutti/profile/
+ - Patch: HBBTV/MHP app. location descriptor in AIT implementation by https://sourceforge.net/u/stephanethomas/profile/
+ - Patch: Add missing capabilities checks by https://github.com/athoik
+
  - Fix: NPT descriptor bugfix - (tnx to "Dong Liu")
  - New: 
 
