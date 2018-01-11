@@ -13,11 +13,11 @@ enum { 	NAL_UNSPECIFIED = 0x00
 };
 
 
-void MPEG4_decodeAUD(int v, u_char *b, int len);
-void MPEG4_decodeSPS(int v, u_char *b, int len);
-void MPEG4_decodePPS(int v, u_char *b, int len);
-void MPEG4_decodeSEI(int v, u_char *b, int len);
-void MPEG4_decodeSlice(int v, u_char *b, int len);
+void H264_decodeAUD(int v, u_char *b, int len);
+void H264_decodeSPS(int v, u_char *b, int len);
+void H264_decodePPS(int v, u_char *b, int len);
+void H264_decodeSEI(int v, u_char *b, int len);
+void H264_decodeSlice(int v, u_char *b, int len);
 
 #endif
 
