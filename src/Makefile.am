@@ -12,6 +12,7 @@ SUBDIRS = \
 	dvb_api \
 	pes \
 	ts \
+	bitdata \
 	datacarousel \
 	tvanytime \
 	testdata \
@@ -37,6 +38,7 @@ dvbsnoop_LDADD = \
 	$(top_builddir)/src/pes/libpes.a \
 	$(top_builddir)/src/sections/libsections.a \
 	$(top_builddir)/src/ts/libts.a \
+	$(top_builddir)/src/bitdata/libbitdata.a \
 	$(top_builddir)/src/datacarousel/libdatacarousel.a \
 	$(top_builddir)/src/tvanytime/libtvanytime.a \
 	$(top_builddir)/src/testdata/libtestdata.a \
@@ -51,6 +53,8 @@ dvbsnoop_LDADD = \
 	$(top_builddir)/src/net_ip/libnetip.a \
 	$(top_builddir)/src/strings/libstrings.a \
 	$(top_builddir)/src/misc/libmisc.a 
+
+dvbsnoop_LDADD += -lm
 
 man_MANS = dvbsnoop.1
 

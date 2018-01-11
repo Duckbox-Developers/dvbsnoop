@@ -27,6 +27,7 @@ fi
 AC_OUTPUT([
 Makefile
 src/Makefile
+src/bitdata/Makefile
 src/datacarousel/Makefile
 src/descriptors/Makefile
 src/dvb_api/Makefile
