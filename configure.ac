@@ -1,5 +1,6 @@
 AC_INIT([dvbsnoop],[1.4.5X],[rasc@users.sourceforge.net])
 AM_INIT_AUTOMAKE([dist-bzip2 no-define])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
 
 AC_PROG_CC
 AC_PROG_RANLIB
