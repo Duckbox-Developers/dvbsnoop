@@ -57,7 +57,7 @@ void  PES_decode_std (u_char *b, int len, u_int PES_streamID)
         u_int     PES_extension_flag;
         u_int     PES_header_data_length;
 
-	// N ... data
+        // N ... data
 
  } PES2_Packet;
 
@@ -68,27 +68,27 @@ void  PES_decode_std (u_char *b, int len, u_int PES_streamID)
  u_char       *b_start = b;
 
 
- p.reserved1				= getBits (b, 0,  0, 2);
- p.PES_scrambling_control		= getBits (b, 0,  2, 2);
- p.PES_priority				= getBits (b, 0,  4, 1);
- p.data_alignment_indicator		= getBits (b, 0,  5, 1);
- p.copyright				= getBits (b, 0,  6, 1);
- p.original_or_copy			= getBits (b, 0,  7, 1);
- p.PTS_DTS_flags			= getBits (b, 0,  8, 2);
- p.ESCR_flag				= getBits (b, 0, 10, 1);
- p.ES_rate_flag				= getBits (b, 0, 11, 1);
- p.DSM_trick_mode_flag			= getBits (b, 0, 12, 1);
- p.additional_copy_info_flag		= getBits (b, 0, 13, 1);
- p.PES_CRC_flag				= getBits (b, 0, 14, 1);
- p.PES_extension_flag			= getBits (b, 0, 15, 1);
- p.PES_header_data_length		= getBits (b, 0, 16, 8);
+ p.reserved1                            = getBits (b, 0,  0, 2);
+ p.PES_scrambling_control               = getBits (b, 0,  2, 2);
+ p.PES_priority                         = getBits (b, 0,  4, 1);
+ p.data_alignment_indicator             = getBits (b, 0,  5, 1);
+ p.copyright                            = getBits (b, 0,  6, 1);
+ p.original_or_copy                     = getBits (b, 0,  7, 1);
+ p.PTS_DTS_flags                        = getBits (b, 0,  8, 2);
+ p.ESCR_flag                            = getBits (b, 0, 10, 1);
+ p.ES_rate_flag                         = getBits (b, 0, 11, 1);
+ p.DSM_trick_mode_flag                  = getBits (b, 0, 12, 1);
+ p.additional_copy_info_flag            = getBits (b, 0, 13, 1);
+ p.PES_CRC_flag                         = getBits (b, 0, 14, 1);
+ p.PES_extension_flag                   = getBits (b, 0, 15, 1);
+ p.PES_header_data_length               = getBits (b, 0, 16, 8);
 
 
  // $$$ TODO own subroutine for PES_header (get and out)
 
  out_SB_NL  (6,"reserved1: ",p.reserved1);
  out_S2B_NL (3,"PES_scrambling_control: ",p.PES_scrambling_control,
-	dvbstrPESscrambling_ctrl_TYPE(p.PES_scrambling_control));
+        dvbstrPESscrambling_ctrl_TYPE(p.PES_scrambling_control));
  out_SB_NL  (3,"PES_priority: ",p.PES_priority);
  out_SB_NL  (3,"data_alignment_indicator: ",p.data_alignment_indicator);
  out_SB_NL  (3,"copyright: ",p.copyright);
@@ -153,28 +153,28 @@ void  PES_decode_std (u_char *b, int len, u_int PES_streamID)
    indent (+1);
 
    trick_mode_control = outBit_S2x_NL  (3,"trick_mode_control: ", b,0,3,
-		   (char *(*)(u_long)) dvbstrPESTrickModeControl);
+                   (char *(*)(u_long)) dvbstrPESTrickModeControl);
 
-   if ( (trick_mode_control == 0x0) ||			/* fast forward */
-        (trick_mode_control == 0x3) ) {			/* fast reverse */
+   if ( (trick_mode_control == 0x0) ||                  /* fast forward */
+        (trick_mode_control == 0x3) ) {                 /* fast reverse */
 
-	   outBit_Sx_NL (3,"field_id: ",b, 3, 2);	/* $$$ TABLE ?? */
-	   outBit_Sx_NL (3,"intra_slice_refresh: ",b, 5, 1);
-	   outBit_Sx_NL (3,"frequency_truncation: ",b, 6, 2);
+           outBit_Sx_NL (3,"field_id: ",b, 3, 2);       /* $$$ TABLE ?? */
+           outBit_Sx_NL (3,"intra_slice_refresh: ",b, 5, 1);
+           outBit_Sx_NL (3,"frequency_truncation: ",b, 6, 2);
 
-   } else if ( (trick_mode_control == 0x1) ||		/* slow motion  */
-               (trick_mode_control == 0x4) ) {		/* slow reverse */
+   } else if ( (trick_mode_control == 0x1) ||           /* slow motion  */
+               (trick_mode_control == 0x4) ) {          /* slow reverse */
 
-	   outBit_Sx_NL (3,"rep_control: ",b, 3, 5);
+           outBit_Sx_NL (3,"rep_control: ",b, 3, 5);
 
-   } else if (trick_mode_control == 0x2) {		/* freeze frame */
+   } else if (trick_mode_control == 0x2) {              /* freeze frame */
 
-	   outBit_Sx_NL (3,"field_id: ",b, 3, 2);	/* $$$ TABLE ?? */
-	   outBit_Sx_NL (6,"reserved: ",b, 5, 3);
+           outBit_Sx_NL (3,"field_id: ",b, 3, 2);       /* $$$ TABLE ?? */
+           outBit_Sx_NL (6,"reserved: ",b, 5, 3);
 
-   } else {						/* reserved     */
+   } else {                                             /* reserved     */
 
-	   outBit_Sx_NL (6,"reserved: ",b, 3, 8);
+           outBit_Sx_NL (6,"reserved: ",b, 3, 8);
 
    }
 
@@ -238,23 +238,23 @@ void  PES_decode_std (u_char *b, int len, u_int PES_streamID)
 
    if (PES_private_data_flag == 0x01) {
 
-	print_databytes (3,"PES_private_data", b, 16);
-   	b += 16;
+        print_databytes (3,"PES_private_data", b, 16);
+        b += 16;
 
    }
 
 
-   if (pack_header_field_flag == 0x01) {		/* ISO 11172-1 pack header */
-	
-	int pack_field_length;
+   if (pack_header_field_flag == 0x01) {                /* ISO 11172-1 pack header */
 
-   	out_nl (3,"pack_header_field: ");
-	indent (+1);
-	pack_field_length             = getBits (b, 0,  0,  8);
-   	out_SB_NL  (3,"pack_field_length: ", pack_field_length);
-	mpeg_pack_header (3, b+1, pack_field_length);
-   	b += pack_field_length +1;
-   	indent (-1);
+        int pack_field_length;
+
+        out_nl (3,"pack_header_field: ");
+        indent (+1);
+        pack_field_length             = getBits (b, 0,  0,  8);
+        out_SB_NL  (3,"pack_field_length: ", pack_field_length);
+        mpeg_pack_header (3, b+1, pack_field_length);
+        b += pack_field_length +1;
+        indent (-1);
 
    }
 
@@ -262,54 +262,54 @@ void  PES_decode_std (u_char *b, int len, u_int PES_streamID)
 
    if (program_packet_sequence_counter_flag == 0x01) {
 
-   	out_nl (3,"program_packet_sequence_counter: ");
-	indent (+1);
-	out_SB_NL  (3,"Marker_bit: ", getBits (b, 0,  0,  1) );
-	out_SB_NL  (3,"program_packet_sequence_counter: ", getBits (b, 0,  1,  7) );
-	out_SB_NL  (3,"Marker_bit: ", getBits (b, 0,  8,  1) );
-	out_SB_NL  (3,"MPEG1_MPEG2_identifier: ", getBits (b, 0,  9,  1) );
-	out_SB_NL  (3,"original_stuff_length: ", getBits (b, 0, 10,  6) );
-	b += 2;
-   	indent (-1);
+        out_nl (3,"program_packet_sequence_counter: ");
+        indent (+1);
+        out_SB_NL  (3,"Marker_bit: ", getBits (b, 0,  0,  1) );
+        out_SB_NL  (3,"program_packet_sequence_counter: ", getBits (b, 0,  1,  7) );
+        out_SB_NL  (3,"Marker_bit: ", getBits (b, 0,  8,  1) );
+        out_SB_NL  (3,"MPEG1_MPEG2_identifier: ", getBits (b, 0,  9,  1) );
+        out_SB_NL  (3,"original_stuff_length: ", getBits (b, 0, 10,  6) );
+        b += 2;
+        indent (-1);
 
    }
 
 
    if (P_STD_buffer_flag == 0x01) {
 
-   	out_nl (3,"P-STD_buffer: ");
-	indent (+1);
-	out_SB_NL  (6,"Fix 01: ",             getBits (b, 0,  0,  2) );
-	out_SB_NL  (3,"P-STD_buffer_scale: ", getBits (b, 0,  2,  1) );
-	out_SB_NL  (3,"P-STD_buffer_size: ",  getBits (b, 0, 3,  13) );
-	b += 2;
-   	indent (-1);
+        out_nl (3,"P-STD_buffer: ");
+        indent (+1);
+        out_SB_NL  (6,"Fix 01: ",             getBits (b, 0,  0,  2) );
+        out_SB_NL  (3,"P-STD_buffer_scale: ", getBits (b, 0,  2,  1) );
+        out_SB_NL  (3,"P-STD_buffer_size: ",  getBits (b, 0, 3,  13) );
+        b += 2;
+        indent (-1);
 
    }
 
 
    if (PES_extension_flag2 == 0x01) {
-	// -- ITU-T Rec. H.222.0 (2000)/Amd.2 (06/2003)
+        // -- ITU-T Rec. H.222.0 (2000)/Amd.2 (06/2003)
 
-	u_int  PES_extension_field_length;
-	u_int  streamID_extension_flag;
+        u_int  PES_extension_field_length;
+        u_int  streamID_extension_flag;
 
-   	out_nl (3,"PES_extension_2: ");
-	indent (+1);
-	out_SB_NL  (3,"Marker_bit: ", getBits (b, 0,  0,  1) );
+        out_nl (3,"PES_extension_2: ");
+        indent (+1);
+        out_SB_NL  (3,"Marker_bit: ", getBits (b, 0,  0,  1) );
 
-	PES_extension_field_length = outBit_Sx_NL (4,"PES_extension_field_length: ",	b,  1, 7);
-	streamID_extension_flag    = outBit_Sx_NL(4,"stream_id_extension_flag: ",	b,  8, 1);
+        PES_extension_field_length = outBit_Sx_NL (4,"PES_extension_field_length: ",    b,  1, 7);
+        streamID_extension_flag    = outBit_Sx_NL(4,"stream_id_extension_flag: ",       b,  8, 1);
 
-	if (streamID_extension_flag == 0) {
-	    outBit_S2x_NL(4,"stream_id_extension_flag: ",	b,   9, 7,
-			(char *(*)(u_long)) dvbstrPESstream_ID_Extension);
-	    print_databytes (6,"reserved:", b+2, PES_extension_field_length-1);
-	}
+        if (streamID_extension_flag == 0) {
+            outBit_S2x_NL(4,"stream_id_extension_flag: ",       b,   9, 7,
+                        (char *(*)(u_long)) dvbstrPESstream_ID_Extension);
+            print_databytes (6,"reserved:", b+2, PES_extension_field_length-1);
+        }
 
 
-	b += PES_extension_field_length + 1;
-   	indent (-1);
+        b += PES_extension_field_length + 1;
+        indent (-1);
 
    }
 
@@ -342,8 +342,8 @@ void  PES_decode_std (u_char *b, int len, u_int PES_streamID)
 
     while (*bx++ == 0xFF) i++;
     if (i > 0) {
-    	print_databytes (4,"stuffing bytes:", b, i);
-    	b += i;
+        print_databytes (4,"stuffing bytes:", b, i);
+        b += i;
     }
 
   }
@@ -362,16 +362,24 @@ void  PES_decode_std (u_char *b, int len, u_int PES_streamID)
     if (len2 > 0) {
       switch (PES_streamID) {
 
-	case 0xBD:	// Data Stream, privat_stream_1 (EN301192-1.3.1 S.11)
-    		out_nl (3,"PES_data (private_stream_1):");
-		indent (+1);
-		PES_decodeDATA_private_stream_1 (b, len2);
-		indent (-1);
-		break;
+        case 0xBD:  // Data Stream, privat_stream_1
+            if (p.data_alignment_indicator && b[0] == 0xAC && (b[1] & 0xfe) == 0x40) {  // som: AC-4 Audio
+                print_databytes (4,"Dolby AC-4 Sync Frame:", b, len2);
+            }
+            else if (p.data_alignment_indicator && b[0] == 0x0b && b[1] == 0x77) {  // som: AC-3 Audio
+                print_databytes (4,"Dolby AC-3 / E-AC-3 Audio:", b, len2);
+            }
+            else {  // som: original code
+                out_nl (3,"PES_data (private_stream_1):");
+                indent (+1);
+                PES_decodeDATA_private_stream_1 (b, len2);
+                indent (-1);
+            }
+            break;
 
-	default:
-		print_databytes (4,"PES_packet_data_bytes:", b, len2);
-		break;
+        default:
+            print_databytes (4,"PES_packet_data_bytes:", b, len2);
+            break;
       }
     } // if
 

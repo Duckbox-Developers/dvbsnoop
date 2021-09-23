@@ -45,7 +45,7 @@ $Id: pespacket.c,v 1.38 2009/11/22 15:36:13 rhabarber1848 Exp $
 
 void processPS_PES_packet (u_int pid, long pkt_nr, u_char *buf, int len)
 {
-	
+
   OPTION *opt  = getOptionPtr();
   char *strx   = (opt->packet_mode == PES) ? "PES" : "PS";
 
@@ -80,60 +80,61 @@ void decodePS_PES_packet (u_char *b, u_int len, int pid)
 {
  /* IS13818-1  2.4.3.6  */
 
-  u_long    packet_start_code_prefix;		// 24 bit
+  u_long    packet_start_code_prefix;           // 24 bit
   u_int     stream_id;
   u_int     PES_packet_length;
-  u_int     stream_type;
+  u_int     PMT_stream_type;
 
 
+  // -- Get/check packet header prefix (sync bits)
+
+  packet_start_code_prefix                = getBits (b, 0,  0, 24);
+  if (packet_start_code_prefix != 0x000001) {
+          out_nl (3," !!! Packet_Start_CODE [%06lx] is wrong (= no PES/PS [0x000001])!!!\n",
+                  packet_start_code_prefix);
+          print_databytes (4,"Unknown packet data:", b, len);
+          return;
+  }
+  out_nl (3,"start_code_prefix: 0x%06lx",packet_start_code_prefix);
+
+  stream_id = b[3];
+
+  // -- decode PES packet header
+  if ( (stream_id >= 0xC0 && stream_id <= 0xDF)      // audio PES
+    || (stream_id == 0xBD /*private_stream_1*/)      // som: AC-3, E-AC-3, AC-4 Audio (ETSI TS 101 154)
+    || (stream_id >= 0xE0 && stream_id <= 0xEF) ) {  // video PES
+
+    out_nl (3,"stream_id: 0x%02X", stream_id);
+
+    PES_packet_length = outBit_Sx_NL (3, "PES_packet_length: ", b, 32, 16);
+
+    b   += 6;
+    len -= 6;
+
+    if ((PES_packet_length==0) /* && ((stream_id & 0xF0)==0xE0) */) {
+        out_nl (3," ==> unbound elementary stream (PES_packet_length == 0)");
+    }
+    if (len > 0) {
+        indent (+1);
+        PES_decode_std (b, len, stream_id);
+        indent (-1);
+    }
+
+    return;
+  }
 
 
- // -- Get/check packet header prefix (sync bits)
+   PMT_stream_type = get_StreamFromMem(pid)->stream_type;
 
- packet_start_code_prefix		 = getBits (b, 0,  0, 24);
- if (packet_start_code_prefix != 0x000001) {
-	out_nl (3," !!! Packet_Start_CODE [%06lx] is wrong (= no PES/PS [0x000001])!!!\n",
-		packet_start_code_prefix);
-	print_databytes (4,"Unknown packet data:", b, len);
-	return;
- }
- out_nl (3,"Packet_start_code_prefix: 0x%06lx",packet_start_code_prefix);
+   //fprintf (stdout, "-># decodePS_PES_packet: len=%u; pid=%d PMT_stream_type=%u\n", len, pid, PMT_stream_type);
 
- stream_id = b[3];
-
- // -- decode PES packet header
- if ((stream_id >= 0xC0 && stream_id <= 0xDF) // audio PES
-     || (stream_id >= 0xE0 && stream_id <= 0xEF)) { // video PES
-
-   PES_packet_length = outBit_Sx_NL (3, "PES_packet_length: ", b, 32, 16);
-
-   b   += 6;
-   len -= 6;
-
-   if ((PES_packet_length==0) && ((stream_id & 0xF0)==0xE0)) {
-       out_nl (3," ==> unbound video elementary stream... \n");
-   }
-   if (len > 0) {
-       indent (+1);
-       PES_decode_std (b, len, stream_id);
-       indent (-1);
-   }
-
-   return;
- }
-
-
-   stream_type = get_StreamFromMem(pid)->stream_type;
-
-   //fprintf (stdout, "-># decodePS_PES_packet: len=%u; pid=%d stream_type=%u\n", len, pid, stream_type);
-
-   if (stream_type == 0) {
+   if (PMT_stream_type == 0) {
       out_nl (3, "!!! Can not find stream type for PID = %d (0x%x) (PMT was not received yet)!!!\n", pid, pid);
       return;
    }
 
    // -- H.264 NALU
-   if (stream_type == 0x1B) {
+   if (PMT_stream_type == 0x1B) {
 
      u_char nal_ref_idc = getBits(b, 0, 25, 2);
      out_SB_NL(3, "nal_ref_idc: ", nal_ref_idc);
@@ -176,6 +177,14 @@ void decodePS_PES_packet (u_char *b, u_int len, int pid)
      return; 
    }
 
+   // TODO: HEVC NALU parse -- som
+   if (PMT_stream_type == 0x24) {
+     print_databytes (5, "HEVC Bytes (incl. sync + id):", b, len);
+     return; 
+   }
+
+
+
    // -- PS/PES stream ID
 
    stream_id = outBit_S2x_NL(3,"Stream_id: ", b, 24, 8,
@@ -188,57 +197,57 @@ void decodePS_PES_packet (u_char *b, u_int len, int pid)
 
    if (stream_id <= 0xB8) {
 
-   		// $$$ TODO  PES Stream ID 0x00 - 0xB8
-		//    reserved	B0
-		//    reserved	B1
-		//    sequence_error_code	B4  (not for streams)
-		//    reserved	B6
+                // $$$ TODO  PES Stream ID 0x00 - 0xB8
+                //    reserved  B0
+                //    reserved  B1
+                //    sequence_error_code       B4  (not for streams)
+                //    reserved  B6
 
-	indent (+1);
-	switch (stream_id) {
+        indent (+1);
+        switch (stream_id) {
 
-	  case 0x00:			// picture_start_code   00
-		MPEG2_decodePictureHeader (4, b, len);
-		break;
+          case 0x00:                    // picture_start_code   00
+                MPEG2_decodePictureHeader (4, b, len);
+                break;
 
-	  case 0xB2:			// user_data_start_code B2
-		MPEG2_decodeUserData (4, b, len);
-		break;
+          case 0xB2:                    // user_data_start_code B2
+                MPEG2_decodeUserData (4, b, len);
+                break;
 
-	  case 0xB3:			// sequence_header_code B3
-		MPEG2_decodeSequenceHeader (4, b, len);
-		break;
+          case 0xB3:                    // sequence_header_code B3
+                MPEG2_decodeSequenceHeader (4, b, len);
+                break;
 
-	  case 0xB5:			// extension_data       B5
-		MPEG2_decodeExtension (4, b, len);
-		break;
+          case 0xB5:                    // extension_data       B5
+                MPEG2_decodeExtension (4, b, len);
+                break;
 
-	  case 0xB7:			// sequence_end_code	B7
-		MPEG2_decodeSequenceEnd (4, b, len);
-		return;
+          case 0xB7:                    // sequence_end_code    B7
+                MPEG2_decodeSequenceEnd (4, b, len);
+                return;
 
-	  case 0xB8:			//    group_start_code	B8
-		MPEG2_decodeGroupOfPictures (4, b, len);
-		break;
+          case 0xB8:                    //    group_start_code  B8
+                MPEG2_decodeGroupOfPictures (4, b, len);
+                break;
 
-	  default:
-					//    slice_start_code	01 through AF
-		if (stream_id >= 0x01 && stream_id <= 0xAF) {
+          default:
+                                        //    slice_start_code  01 through AF
+                if (stream_id >= 0x01 && stream_id <= 0xAF) {
 
-			MPEG2_decodeSlice (4, b, len);
+                        MPEG2_decodeSlice (4, b, len);
 
-		} else {
-					//    unkown
-		   if (len > 4) {		// sync + stream_id = 4 bytes
-			print_databytes (4,"MPEG2 Data (incl. sync + id):", b, len);
-		   }
+                } else {
+                                        //    unkown
+                   if (len > 4) {               // sync + stream_id = 4 bytes
+                        print_databytes (4,"MPEG2 Data (incl. sync + id):", b, len);
+                   }
 
-		}
-		break;
-	}
-	indent (-1);
+                }
+                break;
+        }
+        indent (-1);
 
-	return;
+        return;
 
    }
 
@@ -252,17 +261,17 @@ void decodePS_PES_packet (u_char *b, u_int len, int pid)
    //
 
    switch (stream_id) {
-	case 0xB9:	// MPEG_program_end
-			// stream ID already printed, nothing else to do
-		return;
+        case 0xB9:      // MPEG_program_end
+                        // stream ID already printed, nothing else to do
+                return;
 
-	case 0xBA:	// MPEG_pack_header_start
-		mpeg_pack_header (3, b, -1);		// startcode & ID already printed
-		return;
+        case 0xBA:      // MPEG_pack_header_start
+                mpeg_pack_header (3, b, -1);            // startcode & ID already printed
+                return;
 
-	case 0xBB:	// MPEG_system_header_start
-		mpeg_system_header (3, b, -1);	// startcode & ID already printed
-		return;
+        case 0xBB:      // MPEG_system_header_start
+                mpeg_system_header (3, b, -1);  // startcode & ID already printed
+                return;
    }
 
 
@@ -275,70 +284,70 @@ void decodePS_PES_packet (u_char *b, u_int len, int pid)
    // -- StreamID 0xBC..0xFF
    //
 
-   PES_packet_length = outBit_Sx_NL (3,"PES_packet_length: ",	b,32, 16);
+   PES_packet_length = outBit_Sx_NL (3,"PES_packet_length: ",   b,32, 16);
    b   += 6;
    len -= 6;
 
 
    switch (stream_id) {
 
-	case 0xBC:		// program_stream_map
-		PES_decodePSM (b, PES_packet_length);
-		break;
+        case 0xBC:              // program_stream_map
+                PES_decodePSM (b, PES_packet_length);
+                break;
 
-	case 0xBE:		// padding stream!
-		print_databytes (3,"Padding_bytes:", b, PES_packet_length);
-		break;
+        case 0xBE:              // padding stream!
+                print_databytes (3,"Padding_bytes:", b, PES_packet_length);
+                break;
 
-	case 0xF2:		// DSMCC stream
-		PES_decodeDSMCC (b, PES_packet_length);
-		break;
+        case 0xF2:              // DSMCC stream
+                PES_decodeDSMCC (b, PES_packet_length);
+                break;
 
-	case 0xFF:		// program_stream_directory
-		PES_decodePSDIR (b, PES_packet_length);
-		break;
+        case 0xFF:              // program_stream_directory
+                PES_decodePSDIR (b, PES_packet_length);
+                break;
 
 
-	case 0xBF:		// private_stream_2  (EN301192-1.3.1 S.10)
-	case 0xF0:		// ECM
-	case 0xF1:		// EMM
-	case 0xF8:		// ITU-T Rec. H.222.1 type E
-		print_databytes (3,"PES_packet_data_bytes:", b, PES_packet_length);
-		break;
+        case 0xBF:              // private_stream_2  (EN301192-1.3.1 S.10)
+        case 0xF0:              // ECM
+        case 0xF1:              // EMM
+        case 0xF8:              // ITU-T Rec. H.222.1 type E
+                print_databytes (3,"PES_packet_data_bytes:", b, PES_packet_length);
+                break;
 
-	// case 0xFC:		// metadata stream	(see: H.222.0 AMD1)
-	// $$$ TODO 
+        // case 0xFC:           // metadata stream      (see: H.222.0 AMD1)
+        // $$$ TODO 
 
-	// case 0xBD:		// Data Stream, privat_stream_1 (EN301192-1.3.1 S.11)
-	// case 0xC0-0xDF	// ISO/IEC 13818-3 or 11172-3 or 13818-7 or 14496-3 audio stream 
-	// case 0xE0-0xEF	// ITU-T Rec. H.262 | ISO/IEC 13818-2 or 11172-2 or 14496-2 video stream
-	// case 0xF3		// ISO/IEC_13522_stream
-	// case 0xF4		// ITU-T Rec. H.222.1 type A
-	// case 0xF5		// ITU-T Rec. H.222.1 type B
-	// case 0xF6		// ITU-T Rec. H.222.1 type C
-	// case 0xF7		// ITU-T Rec. H.222.1 type D
-	// case 0xF9		// ancillary_stream
-	// case 0xFA		// ISO/IEC14496-1_SL-packetized_stream
-	// case 0xFB		// ISO/IEC14496-1_FlexMux_stream
-	// case 0xFD		// extended_stream_id
-	// case 0xFE		// reserved data stream
-	
-	//default:
-	//	{
-	//	   int xlen = PES_packet_length;
+        // case 0xBD:           // Data Stream, privat_stream_1 (EN301192-1.3.1 S.11)
+        // case 0xC0-0xDF       // ISO/IEC 13818-3 or 11172-3 or 13818-7 or 14496-3 audio stream 
+        // case 0xE0-0xEF       // ITU-T Rec. H.262 | ISO/IEC 13818-2 or 11172-2 or 14496-2 video stream
+        // case 0xF3            // ISO/IEC_13522_stream
+        // case 0xF4            // ITU-T Rec. H.222.1 type A
+        // case 0xF5            // ITU-T Rec. H.222.1 type B
+        // case 0xF6            // ITU-T Rec. H.222.1 type C
+        // case 0xF7            // ITU-T Rec. H.222.1 type D
+        // case 0xF9            // ancillary_stream
+        // case 0xFA            // ISO/IEC14496-1_SL-packetized_stream
+        // case 0xFB            // ISO/IEC14496-1_FlexMux_stream
+        // case 0xFD            // extended_stream_id
+        // case 0xFE            // reserved data stream
+        
+        //default:
+        //      {
+        //         int xlen = PES_packet_length;
 
- 	//	   if ((PES_packet_length==0) && ((stream_id & 0xF0)==0xE0)) {
-	//		 out_nl (3," ==> unbound video elementary stream... \n");
-	//		 xlen = len;	// PES len field == 0, use read packet len
- 	//	   }
-	//	   if (xlen > 0) {
-	//		indent (+1);
-	//		PES_decode_std (b, xlen, stream_id);
-	//		indent (-1);
-	//	   }
+        //         if ((PES_packet_length==0) && ((stream_id & 0xF0)==0xE0)) {
+        //               out_nl (3," ==> unbound video elementary stream... \n");
+        //               xlen = len;    // PES len field == 0, use read packet len
+        //         }
+        //         if (xlen > 0) {
+        //              indent (+1);
+        //              PES_decode_std (b, xlen, stream_id);
+        //              indent (-1);
+        //         }
 
-	//	}
-	//	break;
+        //      }
+        //      break;
 
    } // switch
 

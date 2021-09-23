@@ -569,7 +569,7 @@ char *dvbstrStream_TYPE (u_int flag)
      {  0x03, 0x03,  "ISO/IEC 11172 Audio" },
      {  0x04, 0x04,  "ISO/IEC 13818-3 Audio" },
      {  0x05, 0x05,  "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 private sections" },
-     {  0x06, 0x06,  "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 PES packets containing private data" },
+     {  0x06, 0x06,  "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 PES packets containing private data | AC-4 Audio" }, // som: ETSI TS 101 154
      {  0x07, 0x07,  "ISO/IEC 13512 MHEG" },
      {  0x08, 0x08,  "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 Annex A  DSM CC" },
      {  0x09, 0x09,  "ITU-T Rec. H.222.0 | ISO/IEC 13818-1/11172-1 auxiliary" },
@@ -592,10 +592,14 @@ char *dvbstrStream_TYPE (u_int flag)
      {  0x19, 0x19,  "Metadata carried in ISO/IEC 13818-6 Synchronized Download Protocol using the Metadata Access Unit Wrapper" },
      {  0x1A, 0x1A,  "IPMP stream (defined in ISO/IEC 13818-11, MPEG-2 IPMP)" },
      {  0x1B, 0x1B,  "AVC video stream as defined in ITU-T Rec. H.264 | ISO/IEC 14496-10 Video" },
+     {  0x24, 0x24,  "HEVC video stream as defined in Rec. ITU-T H. 265 | ISO/IEC 23008-2 Annex B" }, // som: ISO/IEC 13818-1:2013/Amd.3
      {  0x1C, 0x7E,  "ITU-T Rec. H.222.0 | ISO/IEC 13818-1 reserved" },
      {  0x7F, 0x7F,  "IPMP stream" },
 
      // $$$ ATSC ID Names could be includes...
+     {  0x81, 0x81,  "User private | ATSC AC-3 Audio" },   // som: ATSC A/52 Annex A
+     {  0x87, 0x87,  "User private | ATSC E-AC-3 Audio" }, // som: ATSC A/52 Annex G
+
      // $$$ TODO  streamtype == 0x90 at MPE_FEC , see EN 301192 v1.4.1 s9.5
      {  0x80, 0xFF,  "User private" },
      {  0,0, NULL }

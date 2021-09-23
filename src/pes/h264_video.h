@@ -1,5 +1,5 @@
-#ifndef __MPEG4_VIDEO__
-#define __MPEG4_VIDEO__
+#ifndef __H264_VIDEO__
+#define __H264_VIDEO__
 
 #include "dvbsnoop.h"
 
