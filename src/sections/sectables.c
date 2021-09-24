@@ -179,8 +179,8 @@ void decodeSI_packet (u_char *buf, int len, u_int pid)
 
 
 typedef struct _TABLE_IF_FUNC {
-    u_int    from;          /* e.g. from id 1  */
-    u_int    to;            /*      to   id 3  */
+    u_int    from;          /* e.g. from tabel_id 1  */
+    u_int    to;            /*      to   tabel_id 3  */
     void     (*func)();     /*      function for table decoding */
 } TABLE_ID_FUNC;
 
@@ -192,9 +192,9 @@ typedef struct _TABLE_IF_FUNC {
 
 static TABLE_ID_FUNC table_id_func[] = {
 
-     {  0x00, 0x00,  section_PAT	},
-     {  0x01, 0x01,  section_CAT	},
-     {  0x02, 0x02,  section_PMT	},
+     {  0x00, 0x00,  section_PAT	},  // som: tabel_id of program_association_section is 0
+     {  0x01, 0x01,  section_CAT	},  // som: tabel_id of conditional_access_section is 1
+     {  0x02, 0x02,  section_PMT	},  // som: tabel_id of TS_program_map_section is 2
      {  0x03, 0x03,  section_TSDT },
 // $$$ TODO     {  0x04, 0x04,  section_14496_SCT },
 // $$$ TODO     {  0x05, 0x05,  section_14496_OCT },

@@ -90,12 +90,12 @@ void decodePS_PES_packet (u_char *b, u_int len, int pid)
 
   packet_start_code_prefix                = getBits (b, 0,  0, 24);
   if (packet_start_code_prefix != 0x000001) {
-          out_nl (3," !!! Packet_Start_CODE [%06lx] is wrong (= no PES/PS [0x000001])!!!\n",
-                  packet_start_code_prefix);
-          print_databytes (4,"Unknown packet data:", b, len);
-          return;
+      out_nl (3," !!! Packet_Start_CODE [%06lx] is wrong (= no PES/PS [0x000001])!!!\n",
+          packet_start_code_prefix);
+      print_databytes (4,"Unknown packet data:", b, len);
+      return;
   }
-  out_nl (3,"start_code_prefix: 0x%06lx",packet_start_code_prefix);
+  out_nl (3,"start_code_prefix: 0x%06lx [+ %02x %02x %02x %02x]",packet_start_code_prefix,b[3],b[4],b[5],b[6]);
 
   stream_id = b[3];
 
@@ -129,7 +129,7 @@ void decodePS_PES_packet (u_char *b, u_int len, int pid)
    //fprintf (stdout, "-># decodePS_PES_packet: len=%u; pid=%d PMT_stream_type=%u\n", len, pid, PMT_stream_type);
 
    if (PMT_stream_type == 0) {
-      out_nl (3, "!!! Can not find stream type for PID = %d (0x%x) (PMT was not received yet)!!!\n", pid, pid);
+      out_nl (3, "!!! Cannot find stream type for PID = %d (0x%x) (PMT was not received yet)!!!\n", pid, pid);
       return;
    }
 

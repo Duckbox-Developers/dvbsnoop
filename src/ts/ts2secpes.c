@@ -372,7 +372,7 @@ void ts2SecPes_Output_subdecode (u_int overleap_bytes, u_int pid)
      if (tsd->pid > MAX_PID) {
         out_nl (3,"TS sub-decoding (%d packet(s) from %08lu):", tsd->packet_counter, tsd->pkt_nr);
      } else {
-        out_nl (3,"TS sub-decoding (%d packet(s) from %08lu stored for PID %u <0x%04x>):",
+        out_nl (3,"TS sub-decoding %d packet(s) from %08lu stored for PID %u (0x%04x):",
             tsd->packet_counter,tsd->pkt_nr,tsd->pid & 0xFFFF,tsd->pid & 0xFFFF);
      }
      
@@ -380,7 +380,7 @@ void ts2SecPes_Output_subdecode (u_int overleap_bytes, u_int pid)
         out_nl (3,"Subdecoding takes %u bytes from next TS packet", overleap_bytes);
      }
 
-     out_nl (3,"=====================================================");
+     out_nl (3,"-----------------------------------------------------------------");
 
      if (tsd->status != TSD_no_error) {
         char *s = "";
@@ -393,7 +393,7 @@ void ts2SecPes_Output_subdecode (u_int overleap_bytes, u_int pid)
            case TSD_mem_error:          s = "subdecoding buffer (allocation) error"; break;
            case TSD_output_done:        s = "[data already displayed (this should never happen)]"; break;
         }
-        out_nl (3,"Packet cannot be sub-decoded: %s",s);
+        out_nl (3,"STOP: %s",s);
 
      } else {
         u_char *b = packetMem_buffer_start (tsd->mem_handle);
@@ -403,16 +403,18 @@ void ts2SecPes_Output_subdecode (u_int overleap_bytes, u_int pid)
 
             // -- PES/PS or SECTION
 
-            if (b[0]==0x00 && b[1]==0x00 && b[2]==0x01) {
+            if (b[0]==0x00 && b[1]==0x00 && b[2]==0x01) {  // som: look for PES packet_start_code_prefix (0x000001)
                 // som: display the PMT stream_type
                 u_int PMT_stream_type = get_StreamFromMem(tsd->pid)->stream_type;
-                if (PMT_stream_type > 0) {
+
+                if (PMT_stream_type == 0) {
+                    out_nl (3,"STOP: cannot find stream type for PID %u (maybe PMT was not received yet)", tsd->pid);
+                } else {
                     out_S2B_NL (3,"PMT stream_type: ", PMT_stream_type, dvbstrStream_TYPE (PMT_stream_type));
+
+                    out_nl (3,"TS contains PES/PS stream (length=%u)...", len);
+                    ts2ps_pes_multipacket (b, len, tsd->pid);
                 }
-
-                out_nl (3,"TS contains PES/PS stream (length=%u)...", len);
-                ts2ps_pes_multipacket (b, len, tsd->pid);
-
             } else {
                 int pointer = b[0]+1;
                 b += pointer;
@@ -423,13 +425,13 @@ void ts2SecPes_Output_subdecode (u_int overleap_bytes, u_int pid)
             }
 
         } else {
-                out_nl (3,"No prev. packet start found...");
+            out_nl (3,"No prev. packet start found...");
         }
 
 
      }
 
-     out_NL (3);
+     //out_NL (3);
      out_NL (3);
      indent (-1);
      tsd->status = TSD_output_done;
