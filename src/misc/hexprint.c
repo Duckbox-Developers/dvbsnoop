@@ -11,92 +11,80 @@ $Id: hexprint.c,v 1.11 2009/11/22 15:36:10 rhabarber1848 Exp $
 
 */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-
-
 #include "dvbsnoop.h"
 #include "hexprint.h"
 #include "output.h"
-
-
 
 /*
  -- global static data
 
 */
+static int HexPrintmode = 0;
 
-
-int HexPrintmode = 0;
-
+// som: limit the number of formatted bytes displayed. 0 => unlimited
+static int HexPrintLimit = 0;
 
 
 static void printhexdump_buf (int verbose, u_char *buf, int len);
 static void printhexdump2_buf (int verbose, u_char *buf, int len);
 
 
-
-
-
 /*
    -- print-modus setzen
 */
-
-void setHexPrintMode (int i)
-
+void setHexPrintMode (int i, int len)
 {
   HexPrintmode = i;
+  HexPrintLimit = len;
 }
-
-
-
-
 
 
 /*
   - print buffer as Hex Printout
 */
-
 void printhex_buf (int verbose, u_char *buf, int n)
-
 {
+  // som: limit the number of formatted bytes displayed. 0 => unlimited
+  if (HexPrintLimit > 0 && n > HexPrintLimit) {
+    n = HexPrintLimit;
+    out_nl (verbose, " ==> hexdump output truncated to %d bytes", n);
+  }
 
-   switch (HexPrintmode) {
+  switch (HexPrintmode) {
 
-      case 0:
-	return;
-	break;
+    case 0:
+      return;
+      break;
 
-      case 1:
-	printhexdump_buf (verbose,buf,n);
-	break;
+    case 1:
+      printhexdump_buf (verbose,buf,n);
+      break;
 
-      case 2:
-	printhexline_buf (verbose,buf,n);
-	break;
+    case 2:
+      printhexline_buf (verbose,buf,n);
+      break;
 
-      case 3:
-	printasciiline_buf (verbose,buf,n);
-	break;
+    case 3:
+      printasciiline_buf (verbose,buf,n);
+      break;
 
-      case 4:
-	printhexdump2_buf (verbose,buf,n);
-	break;
+    case 4:
+      printhexdump2_buf (verbose,buf,n);
+      break;
 
 
-      default:
-	printhexdump_buf (verbose,buf,n);
-	break;
-   }
+    default:
+      printhexdump_buf (verbose,buf,n);
+      break;
+  }
 
-   return;
+  return;
 }
-
-
 
 
 /*
@@ -107,37 +95,33 @@ void printhex_buf (int verbose, u_char *buf, int n)
 */
 static void printhexdump_buf (int verbose, u_char *buf, int n)
 {
- int i, j;
- u_char c;
- int WID=16;
+  int i, j;
+  u_char c;
+  int WID=16;
 
-j = 0;
-while (j*WID < n) {
+  j = 0;
+  while (j*WID < n) {
 
- out (verbose,"  %04x:  ",j*WID);
- for (i=0; i<WID; i++) {
-   if ( (i+j*WID) >= n) break;
-   c = buf[i+j*WID];
-   out (verbose,"%02x ",(int)c);
- }
- out_NL (verbose);
+    out (verbose,"  %04x:  ",j*WID);
+    for (i=0; i<WID; i++) {
+      if ( (i+j*WID) >= n) break;
+      c = buf[i+j*WID];
+      out (verbose,"%02x ",(int)c);
+    }
+    out_NL (verbose);
 
- out (verbose,"  %04x:  ",j*WID);
- for (i=0; i<WID; i++) {
-   if ( (i+j*WID) >= n) break;
-   c = buf[i+j*WID];
-   out (verbose," %c ",isprint((int)c) ?c:'.');
- }
- out_NL (verbose);
- 
- j++;
+    out (verbose,"  %04x:  ",j*WID);
+    for (i=0; i<WID; i++) {
+      if ( (i+j*WID) >= n) break;
+      c = buf[i+j*WID];
+      out (verbose," %c ",isprint((int)c) ?c:'.');
+    }
+    out_NL (verbose);
 
+    j++;
+
+  }
 }
-
-
-}
-
-
 
 
 /*
@@ -146,15 +130,13 @@ while (j*WID < n) {
 */
 void printhexline_buf (int verbose, u_char *buf, int n)
 {
- int i;
+  int i;
 
- for (i=0; i<n; i++) {
-   out (verbose,"%02x ",(int)buf[i]);
- }
- out_NL (verbose);
+  for (i=0; i<n; i++) {
+    out (verbose,"%02x ",(int)buf[i]);
+  }
+  out_NL (verbose);
 }
-
-
 
 
 /*
@@ -163,16 +145,15 @@ void printhexline_buf (int verbose, u_char *buf, int n)
 */
 void printasciiline_buf (int verbose, u_char *buf, int n)
 {
- int    i;
- u_char c;
+  int    i;
+  u_char c;
 
- for (i=0; i<n; i++) {
-   c = buf[i];
-   out (verbose,"%c",isprint((int)c) ?c:'.');
- }
- out_NL (verbose);
+  for (i=0; i<n; i++) {
+    c = buf[i];
+    out (verbose,"%c",isprint((int)c) ?c:'.');
+  }
+  out_NL (verbose);
 }
-
 
 
 /*
@@ -182,45 +163,39 @@ void printasciiline_buf (int verbose, u_char *buf, int n)
 */
 static void printhexdump2_buf (int verbose, u_char *buf, int n)
 {
- int    i, j;
- int    k;
- u_char c;
- int    WID=16;
+  int    i, j;
+  int    k;
+  u_char c;
+  int    WID=16;
 
-j = 0;
-while (j*WID < n) {
+  j = 0;
+  while (j*WID < n) {
 
- out (verbose,"  %04x:  ",j*WID);
+    out (verbose,"  %04x:  ",j*WID);
 
- for (i=0; i<WID; i++) {
-   if ( (i+j*WID) >= n) break;
-   c = buf[i+j*WID];
-   out (verbose,"%02x ",(int)c);
-   if ((i+1)%8 == 0) out (verbose," ");
- }
+    for (i=0; i<WID; i++) {
+      if ( (i+j*WID) >= n) break;
+      c = buf[i+j*WID];
+      out (verbose,"%02x ",(int)c);
+      if ((i+1)%8 == 0) out (verbose," ");
+    }
 
- for (k=i; k<WID; k++) {
-   out (verbose, "   ");   // filler
-   if ((k+1)%8 == 0) out (verbose," ");
- }
+    for (k=i; k<WID; k++) {
+      out (verbose, "   ");   // filler
+      if ((k+1)%8 == 0) out (verbose," ");
+    }
 
- out (verbose," ");
+    out (verbose," ");
 
- for (i=0; i<WID; i++) {
-   if ( (i+j*WID) >= n) break;
-   c = buf[i+j*WID];
-   out (verbose,"%c",isprint((int)c) ?c:'.');
- }
- out_NL (verbose);
+    for (i=0; i<WID; i++) {
+      if ( (i+j*WID) >= n) break;
+      c = buf[i+j*WID];
+      out (verbose,"%c",isprint((int)c) ?c:'.');
+    }
+    out_NL (verbose);
 
- 
- j++;
 
+    j++;
+
+  }
 }
-
-
-}
-
-
-
-

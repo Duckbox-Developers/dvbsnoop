@@ -29,19 +29,13 @@ $Id: dvbsnoop.c,v 1.34 2009/11/22 15:36:05 rhabarber1848 Exp $
 
 
 
-
-
-
 int main(int argc, char **argv)
-
 {
-
   OPTION  opt;
   int     err = 0;
 
-
   /*
-    -- init options and cmdline parsing
+     -- init options and cmdline parsing
   */
 
   setvbuf(stdout, NULL, _IOLBF, 0);
@@ -49,97 +43,95 @@ int main(int argc, char **argv)
 
   init_PidMemory ();
 
-
   if (! cmdline_options (argc,argv, &opt) ) return (-1);
 
-  setMaxVerboseLevel (opt.printdecode);
-  setHexPrintMode    (opt.printhex);
+  // som: limit the number of formatted bytes displayed in hexprint
+  int hexprintlimit = 0;
+  char *hexprlt_str = getenv("MYTSINFO_HEX_PRINT_LIMIT");
+  if (hexprlt_str) hexprintlimit = atoi(hexprlt_str);
 
+  setMaxVerboseLevel (opt.printdecode);
+  setHexPrintMode    (opt.printhex, hexprintlimit);
 
 
   indent (0);
   if (! opt.binary_out) {
-     if (! opt.hide_copyright) {
-        out_nl (1, "%s -- %s ", DVBSNOOP_PROG_VERSION, DVBSNOOP_URL);
-     }
+    if (! opt.hide_copyright) {
+      out_nl (1, "%s -- %s ", DVBSNOOP_PROG_VERSION, DVBSNOOP_URL);
+    }
 
-     if (! opt.inpPidFile) {
-	if (opt.pid != DUMMY_PID) {
-		out_nl (9, "   PID   : %d (0x%04x)",opt.pid,opt.pid);
-	}
-	if ((opt.packet_mode == SECT) && (opt.filterLen > 0)) {		// filter are only for sections
+    if (! opt.inpPidFile) {
+      if (opt.pid != DUMMY_PID) {
+        out_nl (9, "   PID   : %d (0x%04x)",opt.pid,opt.pid);
+      }
+      if ((opt.packet_mode == SECT) && (opt.filterLen > 0)) {         // filter are only for sections
 
-		int i;
-		out (9, "   Filter: 0x");
-		for (i=0; i < opt.filterLen; i++) {
-			out (9,"%02x ",opt.filter[i]);
-		}
-		out_NL (9);
-		out (9, "   Mask  : 0x");
-		for (i=0; i < opt.filterLen; i++) {
-			out (9,"%02x ",opt.mask[i]);
-		}
-		out_NL (9);
-		out_nl (9, "   Max. Filtersize: %d",DMX_FILTER_SIZE);
+        int i;
+        out (9, "   Filter: 0x");
+        for (i=0; i < opt.filterLen; i++) {
+          out (9,"%02x ",opt.filter[i]);
+        }
+        out_NL (9);
+        out (9, "   Mask  : 0x");
+        for (i=0; i < opt.filterLen; i++) {
+          out (9,"%02x ",opt.mask[i]);
+        }
+        out_NL (9);
+        out_nl (9, "   Max. Filtersize: %d",DMX_FILTER_SIZE);
 
-	}
-	out_nl (9, "   DEMUX : %s",opt.devDemux);
-	out_nl (9, "   DVR   : %s",opt.devDvr);
-	out_nl (9, "   FRONTEND: %s",opt.devFE);
-     }
+      }
+      out_nl (9, "   DEMUX : %s",opt.devDemux);
+      out_nl (9, "   DVR   : %s",opt.devDvr);
+      out_nl (9, "   FRONTEND: %s",opt.devFE);
+    }
   }
-
 
 
   initOSSigHandler ();
   init_receive_time ();
 
 
-	  switch (opt.packet_mode) {
-		case SECT:
-			err = doReadSECT (&opt);
-			break;
+  switch (opt.packet_mode) {
+    case SECT:
+      err = doReadSECT (&opt);
+      break;
 
-		case PS:
-		case PES:
-			err = doReadPES (&opt);
-			break;
+    case PS:
+    case PES:
+      err = doReadPES (&opt);
+      break;
 
-		case TS:
-			err = doReadTS (&opt);
-			break;
+    case TS:
+      err = doReadTS (&opt);
+      break;
 
-		case PIDSCAN:
-			err = ts_pidscan (&opt);
-			break;
+    case PIDSCAN:
+      err = ts_pidscan (&opt);
+      break;
 
-		case PIDBANDWIDTH:
-			err = ts_pidbandwidth (&opt);
-			break;
+    case PIDBANDWIDTH:
+      err = ts_pidbandwidth (&opt);
+      break;
 
-		case SCAN_FE_SIGNAL:
-			err = do_SignalStrength (&opt);
-			break;
+    case SCAN_FE_SIGNAL:
+      err = do_SignalStrength (&opt);
+      break;
 
-		case SCAN_FE_INFO:
-			err = do_FE_Info (&opt);
-			break;
+    case SCAN_FE_INFO:
+      err = do_FE_Info (&opt);
+      break;
 
-		default:
-			fprintf (stderr,"unknown snoop type (this should never happen).\n");
-			break;
+    default:
+      fprintf (stderr,"unknown snoop type (this should never happen).\n");
+      break;
 
-	  }
+  }
 
-
-
-
- if ( isSigAbort() ) {
-	 out_nl (1,"... aborted (Signal: %d)",isSigAbort());
- }
- restoreOSSigHandler();
- return err;
-
+  if ( isSigAbort() ) {
+    out_nl (1,"... aborted (Signal: %d)",isSigAbort());
+  }
+  restoreOSSigHandler();
+  return err;
 }
 
 

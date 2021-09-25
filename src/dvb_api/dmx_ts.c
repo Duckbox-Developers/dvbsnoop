@@ -31,46 +31,40 @@ $Id: dmx_ts.c,v 1.38 2009/11/22 15:36:07 rhabarber1848 Exp $
 #include "dmx_error.h"
 #include "dmx_ts.h"
 
-
+#include "misc/program_mem.h"
 
 
 #define TS_PACKET_LEN (188)              /* TS RDSIZE is fixed !! */
 #define TS_SYNC_BYTE  (0x47)             /* SyncByte fuer TS  ISO 138181-1 */
-#define TS_BUF_SIZE   (256 * 1024)	 /* default DMX_Buffer Size for TS */
+#define TS_BUF_SIZE   (256 * 1024)       /* default DMX_Buffer Size for TS */
 #define READ_BUF_SIZE (3*TS_PACKET_LEN)  /* min. 2x TS_PACKET_LEN!!! */
-
 
 
 static long ts_SyncRead (int fd, u_char *buf, long max_buflen, long *skipped_bytes);
 
 
 
-
-
 int  doReadTS (OPTION *opt)
-
 {
   int     fd_dmx = 0, fd_dvr = 0;
-  u_char  buf[READ_BUF_SIZE]; 	/* data buffer */
-  u_char  *b;			/* ptr for packet start */
+  u_char  buf[READ_BUF_SIZE];   /* data buffer */
+  u_char  *b;                   /* ptr for packet start */
   long    count;
   long    filtered_count;
   char    *f;
   int     openMode;
   int     fileMode;
   long    dmx_buffer_size = TS_BUF_SIZE;
-
-
   
 
   if (opt->inpPidFile) {
-  	f        = opt->inpPidFile;
-  	openMode = O_RDONLY | O_LARGEFILE | O_BINARY;
-        fileMode = 1;
+      f        = opt->inpPidFile;
+      openMode = O_RDONLY | O_LARGEFILE | O_BINARY;
+      fileMode = 1;
   } else {
-  	f        = opt->devDvr;
-  	openMode = O_RDONLY;
-        fileMode = 0;
+      f        = opt->devDvr;
+      openMode = O_RDONLY;
+      fileMode = 0;
   } 
 
 
@@ -80,39 +74,35 @@ int  doReadTS (OPTION *opt)
   }
 
 
-  
-
-
-  /*
-   -- init demux
-  */
-
+  //
+  // -- init demux
+  //
   if (!fileMode) {
     struct dmx_pes_filter_params flt;
 
     if((fd_dmx = open(opt->devDemux,O_RDWR)) < 0){
         IO_error(opt->devDemux);
-	close (fd_dvr);
+        close (fd_dvr);
         return -1;
     }
 
 
     // -- alloc dmx buffer for TS
     if (opt->rd_buffer_size > 0) {
-	    dmx_buffer_size = opt->rd_buffer_size;
+        dmx_buffer_size = opt->rd_buffer_size;
     }
 
     // -- full Transport Stream Read?? (special DVB-API-PID...)
     if (opt->ts_raw_mode) {
-	    opt->pid = PID_FULL_TS;
+        opt->pid = PID_FULL_TS;
     }
 
 
     if (ioctl(fd_dmx,DMX_SET_BUFFER_SIZE, dmx_buffer_size) < 0) {
-	IO_error ("DMX_SET_BUFFER_SIZE failed: ");
-	close (fd_dmx);
-	close (fd_dvr);
-	return -1;
+        IO_error ("DMX_SET_BUFFER_SIZE failed: ");
+        close (fd_dmx);
+        close (fd_dvr);
+        return -1;
     }
 
     memset (&flt, 0, sizeof (struct dmx_pes_filter_params));
@@ -124,27 +114,25 @@ int  doReadTS (OPTION *opt)
     flt.flags = DMX_IMMEDIATE_START;
 
     if (ioctl(fd_dmx,DMX_SET_PES_FILTER,&flt) < 0) {
-	IO_error ("DMX_SET_PES_FILTER failed: ");
-	close (fd_dmx);
-	close (fd_dvr);
-	return -1;
+        IO_error ("DMX_SET_PES_FILTER failed: ");
+        close (fd_dmx);
+        close (fd_dvr);
+        return -1;
     }
-
   }
 
 
   // -- acquire TS subdecoding buffer
   if (opt->ts_subdecode) {
-	ts2SecPesInit ();
+      ts2SecPesInit ();
   }
   // -- init TS CC check
   ts_cc_init ();
 
 
-/*
-  -- read TS packets for pid
-*/
-
+  //
+  // -- read TS packets for pid
+  //
   count = 0;
   filtered_count = 0;
   while ( ! isSigAbort() ) {
@@ -154,51 +142,46 @@ int  doReadTS (OPTION *opt)
     int    packet_pid       = -1;
 
 
-
     // -- Sync TS read!
     n = ts_SyncRead (fd_dvr,buf,sizeof(buf), &skipped_bytes);
     b = buf+(skipped_bytes % TS_PACKET_LEN);
 
 
-
     // -- error or eof?
     if (n < 0) {
-	int err;
-	
-	err = IO_error("read");
-	// if (err == ETIMEDOUT) break;		// Timout, abort
-	continue;
+        int err;
+
+        err = IO_error("read");
+        // if (err == ETIMEDOUT) break;         // Timout, abort
+        continue;
     }
 
     if (n == 0) {
-	if (!fileMode) continue;	// DVRmode = no eof!
-	else {			// filemode eof 
-	  ts2SecPes_LastPacketReadSubdecode_Output ();
-	  break;
-	}
+        if (!fileMode) continue;        // DVRmode = no eof!
+        else {                  // filemode eof 
+          ts2SecPes_LastPacketReadSubdecode_Output ();
+          break;
+        }
     }
-
 
 
     count ++;
 
 
-
     // -- skipped Data to get sync byte?
     if (skipped_bytes) {
-	if (! opt->binary_out) {
-		out_nl (3,"!!! %ld bytes skipped to get TS sync!!!");
-	}
+        if (! opt->binary_out) {
+            out_nl (3,"!!! %ld bytes skipped to get TS sync!!!");
+        }
     }
 
     // -- SyncByte for TS packet and correct len?
     if (b[0] != TS_SYNC_BYTE || n != TS_PACKET_LEN) {
-	if (! opt->binary_out) {
-		out_nl (3,"!!! Wrong SyncByte or packet length mismatch (= no TS)!!!");
-	}
-	continue;
+        if (! opt->binary_out) {
+            out_nl (3,"!!! Wrong SyncByte or packet length mismatch (= no TS)!!!");
+        }
+        continue;
     }
-
 
 
     // -- PID soft filter mode
@@ -207,34 +190,51 @@ int  doReadTS (OPTION *opt)
    
     packet_pid = getBits (b, 0,11, 13);
     if ((opt->pid >= 0) && (opt->pid <= MAX_PID) && (opt->pid != packet_pid)) {
-	pid_filter_match = 0;
+        pid_filter_match = 0;
     }
 
+    //
+    // som: Always parse PSI when sub-decoding, even if PID soft filter is set
+    //
+    const int current_verbosity = getVerboseLevel();
+    const int reduced_verbosity = 3;
+    if (opt->ts_subdecode) {
+        if (pid_filter_match == 0) {
+            if (packet_pid == 0 || is_PMT_PID(packet_pid)) {
+                if (current_verbosity > reduced_verbosity) {
+                    // som: reduce verbosity while processing a filtered PID
+                    pid_filter_match = 2; setVerboseLevel(reduced_verbosity);
+                } else {
+                    pid_filter_match = 1; 
+                }
+            }
+        }
+    }
 
 
     // -- packet output ? (binary or decoded)
     // -- This happens, when filter are matching (hard or soft filter)
 
-
     if (pid_filter_match) { 
 
-	filtered_count++;
+        filtered_count++;
 
 
-	if (opt->binary_out) {
+        if (opt->binary_out) {
 
-		// direct write to FD 1 ( == stdout)
-		write (1, b, n);
+            // direct write to FD 1 ( == stdout)
+            write (1, b, n);
 
-    	} else {
+        } else {
 
-		processTS_packet (packet_pid, filtered_count, b, n);
+            processTS_packet (packet_pid, filtered_count, b, n);
 
-	} 
+        }
+
+        // som: restore default verbosity
+        if (pid_filter_match == 2) setVerboseLevel(current_verbosity);
 
     } // pid_filter_match: packet out
-
-
 
 
     // count packets ?
@@ -244,8 +244,6 @@ int  doReadTS (OPTION *opt)
     if (opt->dec_packet_count > 0) {
        if (filtered_count >= opt->dec_packet_count) break;
     }
-
-
   } // while
 
 
@@ -268,10 +266,6 @@ int  doReadTS (OPTION *opt)
 }
 
 
-
-
-
-
 /*
  * -- sync read (optimized = avoid multiple byte reads)
  * -- Seek TS sync-byte and read packet in buffer
@@ -282,48 +276,39 @@ int  doReadTS (OPTION *opt)
 
 static long  ts_SyncRead (int fd, u_char *buf, long max_buflen, long *skipped_bytes)
 {
-    int    n1,n2;
-    int    i;
-    int    found;
+  int    n1,n2;
+  int    i;
+  int    found;
 
 
-    // -- simple TS sync...
-    // -- $$$ to be improved:
-    // -- $$$  (best would be: check if buf[188] is also a sync byte)
- 
+  // -- simple TS sync...
+  // -- $$$ to be improved:
+  // -- $$$  (best would be: check if buf[188] is also a sync byte)
 
-    *skipped_bytes = 0;
-    found = 0;
-    while (! found) {
-    	n1 = read(fd,buf,TS_PACKET_LEN);
-    	if (n1 <= 0) return n1;			// error or strange, abort
 
-    	for (i=0;i<n1; i++) {			// search sync byte
-		if (buf[i] == TS_SYNC_BYTE) {
-			found = 1;
-			break;
-		}
-    	}
-    	*skipped_bytes += i;
+  *skipped_bytes = 0;
+  found = 0;
+  while (! found) {
+    n1 = read(fd,buf,TS_PACKET_LEN);
+    if (n1 <= 0) return n1;                 // error or strange, abort
+
+    for (i=0;i<n1; i++) {                   // search sync byte
+      if (buf[i] == TS_SYNC_BYTE) {
+        found = 1;
+        break;
+      }
     }
+    *skipped_bytes += i;
+  }
 
-    // -- Sync found!
-    // -- read skipped number of bytes per read try
+  // -- Sync found!
+  // -- read skipped number of bytes per read try
 
-    if (i == 0) return n1;			// already complete packet read...
+  if (i == 0) return n1;                      // already complete packet read...
 
-    n2 = read(fd,buf+n1,TS_PACKET_LEN-n1+i);	// continue read TS packet
-    if (n2 >=0) n2 = n1+n2-i; ;			// should be TS_PACKET_LEN anyway...
+  n2 = read(fd,buf+n1,TS_PACKET_LEN-n1+i);    // continue read TS packet
+  if (n2 >=0) n2 = n1+n2-i; ;                 // should be TS_PACKET_LEN anyway...
 
-    return n2;
+  return n2;
 }
-
-
-
-
-
-
-
-
-
 

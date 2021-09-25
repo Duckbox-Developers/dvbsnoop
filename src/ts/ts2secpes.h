@@ -29,7 +29,7 @@ int  ts2SecPes_LastPacketReadSubdecode_Output (void);
 void ts2SecPes_Output_subdecode (u_int overleap_bytes, u_int pid);
 
 void  ts2sec_multipacket (u_char *b, int len, u_int pid);
-void  ts2ps_pes_multipacket (u_char *b, int len, u_int pid);
+void  ts2ps_pes_multipacket (u_char *b, int len, u_int pid, u_int stream_type);
 
 
 
