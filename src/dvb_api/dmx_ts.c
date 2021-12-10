@@ -196,14 +196,14 @@ int  doReadTS (OPTION *opt)
     //
     // som: Always parse PSI when sub-decoding, even if PID soft filter is set
     //
-    const int current_verbosity = getVerboseLevel();
+    const int current_verbosity = getMaxVerboseLevel();
     const int reduced_verbosity = 3;
     if (opt->ts_subdecode) {
         if (pid_filter_match == 0) {
             if (packet_pid == 0 || is_PMT_PID(packet_pid)) {
                 if (current_verbosity > reduced_verbosity) {
                     // som: reduce verbosity while processing a filtered PID
-                    pid_filter_match = 2; setVerboseLevel(reduced_verbosity);
+                    pid_filter_match = 2; setMaxVerboseLevel(reduced_verbosity);
                 } else {
                     pid_filter_match = 1; 
                 }
@@ -232,7 +232,7 @@ int  doReadTS (OPTION *opt)
         }
 
         // som: restore default verbosity
-        if (pid_filter_match == 2) setVerboseLevel(current_verbosity);
+        if (pid_filter_match == 2) setMaxVerboseLevel(current_verbosity);
 
     } // pid_filter_match: packet out
 
