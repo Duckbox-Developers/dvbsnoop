@@ -193,7 +193,7 @@ int  print_FE_BasicCapabilities (int v, int fd_fe)
 
      out_nl (v,"Frequency (min):     %d.%03d %s", fi.frequency_min / 1000, fi.frequency_min % 1000, sf);
      out_nl (v,"Frequency (max):     %d.%03d %s", fi.frequency_max / 1000, fi.frequency_max % 1000, sf);
-     out_nl (v,"Frequency stepsiz:   %d.%03d %s", fi.frequency_stepsize / 1000, fi.frequency_stepsize % 1000, sf);
+     out_nl (v,"Frequency stepsize:   %d.%03d %s", fi.frequency_stepsize / 1000, fi.frequency_stepsize % 1000, sf);
      out_nl (v,"Frequency tolerance: %d.%03d %s", fi.frequency_tolerance / 1000, fi.frequency_tolerance % 1000, sf);
 
    }
