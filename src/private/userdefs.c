@@ -50,7 +50,7 @@ $Id: userdefs.c,v 1.7 2009/11/22 15:36:17 rhabarber1848 Exp $
 
 typedef struct _PRIVATE_PROVIDER_FUNC {
     char     *str;          /* e.g. "premiere.de" */
-    void     (*func)();     /* function for getting table & descriptors */
+    void     (*func)(PRIV_SECTION_ID_FUNC **, PRIV_DESCR_ID_FUNC **);     /* function for getting table & descriptors */
 } PRIV_PROVIDER_FUNC;
 
 

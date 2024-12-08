@@ -37,8 +37,8 @@ static void NullHandler   (int sig_nr);
 // catch these signals 
 static struct {
    	int 	sig;
-   	void	(*new_handler)();
-   	void	(*org_handler)();
+   	void	(*new_handler)(int);
+   	void	(*org_handler)(int);
 } signalList[] = {
 	{ SIGHUP,  SmoothHandler,   NullHandler }, // -1  terminate smoothly
 	{ SIGQUIT, SmoothHandler,   NullHandler }, // -3  terminate smoothly
