@@ -181,7 +181,7 @@ void decodeSI_packet (u_char *buf, int len, u_int pid)
 typedef struct _TABLE_IF_FUNC {
     u_int    from;          /* e.g. from tabel_id 1  */
     u_int    to;            /*      to   tabel_id 3  */
-    void     (*func)();     /*      function for table decoding */
+    void     (*func)(unsigned char *, int);     /*      function for table decoding */
 } TABLE_ID_FUNC;
 
 

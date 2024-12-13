@@ -25,14 +25,14 @@ $Id: userdefs.h,v 1.3 2005/12/29 02:43:38 rasc Exp $
 
 typedef struct _PRIVATE_SECTION_STRUCTURES_FUNC {
     u_int    table_id;         	/* section table ID */
-    void     (*func)();  	/* function for table decoding */
+    void     (*func)(unsigned char *, int);  	/* function for table decoding */
 } PRIV_SECTION_ID_FUNC;
 
 
 typedef struct _PRIVATE_DESCRIPTOR_STRUCTURES_FUNC {
     u_int      descriptor_tag; 	/* descriptor tag ID */
     DTAG_SCOPE tag_scope;	/* MPEG, DVB_SI, DSMCC_STREAM, ... */
-    void       (*func)();  	/* function for descriptor decoding */
+    void       (*func)(unsigned char *);  	/* function for descriptor decoding */
 } PRIV_DESCR_ID_FUNC;
 
 
